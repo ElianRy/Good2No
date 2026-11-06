@@ -37,6 +37,19 @@ Ce qui marche le mieux :
   façades avec encadrements, perron, colonnes ; globe = vraie carte des continents (fleming/video.py : earth_sphere).
 - Attention résolution basse : une corde/ficelle doit faire au moins 3-4 cm de rayon pour rester visible.
 
+## Lot du 6 nov. (soir) : Poon Lim, Cher Ami, rayons X -> leçons
+- **Balises Gemini lues à voix haute** : avec une balise sur presque chaque ligne (et surtout deux balises « [serious] [slow] »), Charon finit par LIRE les balises
+  (« sérieux slow », « friendly fast »…) et peut sauter une phrase (« Abonne-toi » sauté). Mettre **au plus 7-8 balises simples** par vidéo, sur les lignes clés
+  (accroche, révélations, abonne-toi, question). Si une balise est lue quand même : la couper dans voix.wav aux creux d'énergie (les temps ASR sont en retard
+  d'environ 0,25 s, ne pas couper sur eux directement), puis relancer align7.py.
+- **Mer** : `props7.ocean()` maillée finement (30x30) + `near_waves()` autour du sujet ; une grande grille 8x8 fait des triangles géants mal découpés
+  près de la caméra (zones grises).
+- **IK des bras** : une main ne peut pas aller à plus de ~0,6 m de l'épaule. Pour une main posée sur une table, rapprocher le personnage, ou poser une main
+  modélisée à plat sur l'objet et viser le poignet avec l'IK.
+- `photo_plate()` à plat : `rotx(-pi/2)` (face vers le haut). Une cuve = fond + 4 bords, jamais une boîte pleine (elle cache ce qu'il y a dedans).
+- Casques 14-18 : `hat='brodie'` (américain), `hat='stahl'` (allemand) ; chapeau de paille `hat='straw'` ; `pigeon()`, `shark()`, `raft()`, `cargo_ship()`,
+  `uboat()`, `patrol_plane()`, `fishing_boat(emu=True)`, `crookes_tube()`, `xray_screen()`, `hand_image()` dans props7.py.
+
 Options moteur :
 - lib.SIMPLE_FACES = True  -> visages 2 points (à mettre avant d'importer world).
 - Look PS1 renforcé (en test) : engine.PS1_MODE = True ; engine.W, engine.H, engine.UPS = 180, 320, 6
