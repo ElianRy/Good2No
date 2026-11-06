@@ -16,7 +16,7 @@ Ce qui marche le mieux :
 
 ## Lot 7 (5 nov. 2026) : ce qui est désormais la base -> dossier lot7/
 - **Look PS1 obligatoire** : `from g2n7 import *` EN PREMIER (règle engine.PS1_MODE=True, 180x320 agrandi x6 sans lissage, visages 2 points).
-- **Voix automatique** : `python3 lot7/tts7.py <nom>` appelle Gemini (clé dans ~/.g2n_key, jamais dans le dépôt), une requête par vidéo, balises de ton optionnelles dans BALISES de scripts7.py, puis lance align7.py tout seul.
+- **Voix automatique** : `python3 lot7/tts7.py <nom>` appelle Gemini (clé dans ~/.g2n_key, jamais dans le dépôt), une requête par vidéo, le ton se règle UNIQUEMENT par les balises [shocked] [fast]… dans BALISES de scripts7.py (le modèle lit à voix haute toute consigne écrite en phrase), puis lance align7.py tout seul. Si la conversation est reliée au PC d'Elian, l'envoi vers Google est bloqué depuis le serveur : passer par le PC (voir la compétence).
 - **Voix** : un seul wav Gemini par vidéo. `python3 lot7/align7.py <nom> <voix.wav> [silence_max] [silence_gardé]`
   -> coupe le blanc du début (voix dès 0,0 s), raccourcit les silences trop longs, ASR sherpa-onnx (zipformer fr, à télécharger
   depuis les releases GitHub k2-fsa/sherpa-onnx dans /home/claude/asr), timing.json mot par mot (décalage ASR -0,12 s corrigé).

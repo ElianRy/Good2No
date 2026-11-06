@@ -1,6 +1,8 @@
 """Voix off Good2No automatique avec Gemini (Google AI Studio), puis calage des sous-titres (align7.py).
 
 usage : python3 lot7/tts7.py <nom> [--voix Charon] [--modele gemini-3.8-flash-tts] [--sans-calage]
+        python3 lot7/tts7.py <nom> --requete req.json   -> écrit seulement la requête Gemini (à envoyer depuis le PC d'Elian)
+        python3 lot7/tts7.py <nom> --depuis-wav voix.wav -> saute l'appel Gemini, convertit + cale un wav déjà généré
 
 - <nom> : clé de ALL dans scripts7.py (ex. chaise). Le texte lu = le « texte lu » de chaque ligne
   (ou le sous-titre s'il vaut None), précédé des balises de ton de BALISES[<nom>][numéro de ligne] s'il y en a.
@@ -15,10 +17,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import scripts7
 
-STYLE = ("Conteur TikTok captivant, en français. Rythme rapide. La TOUTE PREMIÈRE phrase est dite fort, "
-         "avec choc et énergie maximale, jamais chuchotée ni murmurée. Pauses courtes avant les révélations. "
-         "Ton complice quand tu dis « abonne-toi ». Lis absolument toutes les phrases, dans l'ordre, sans en sauter. "
-         "Les mots entre crochets sont des consignes de ton : ne les lis jamais à voix haute.")
+# Testé le 6 nov. 2026 : ce modèle LIT à voix haute toute consigne en texte (même « Lis comme un conteur : »),
+# et refuse systemInstruction. Le ton se règle donc UNIQUEMENT avec les balises [shocked] [fast]… devant les lignes.
 
 
 def api_key():
@@ -31,12 +31,16 @@ def api_key():
     return k
 
 
-def synth(text, voice, model, key, tries=3):
-    body = {
-        "contents": [{"parts": [{"text": STYLE + "\n\nTexte à lire :\n" + text}]}],
+def body_for(text, voice):
+    return {
+        "contents": [{"parts": [{"text": text}]}],
         "generationConfig": {"responseModalities": ["AUDIO"],
                              "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}},
     }
+
+
+def synth(text, voice, model, key, tries=3):
+    body = body_for(text, voice)
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     d = None
     for n in range(tries):
@@ -74,15 +78,26 @@ def main():
     ap.add_argument('--voix', default='Charon')
     ap.add_argument('--modele', default='gemini-3.8-flash-tts')
     ap.add_argument('--sans-calage', action='store_true')
+    ap.add_argument('--requete')
+    ap.add_argument('--depuis-wav')
     a = ap.parse_args()
 
+    if a.requete:
+        json.dump(body_for(texte_lu(a.name), a.voix), open(a.requete, 'w'), ensure_ascii=False)
+        print('requête écrite :', a.requete); return
     out = os.path.join(HERE, a.name)
     os.makedirs(out, exist_ok=True)
-    pcm, mime = synth(texte_lu(a.name), a.voix, a.modele, api_key())
-    rate = int(mime.split('rate=')[1].split(';')[0]) if 'rate=' in mime else 24000
     raw = os.path.join(out, 'voix_brute.wav')
-    with wave.open(raw, 'wb') as w:
-        w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(pcm)
+    if a.depuis_wav:
+        subprocess.check_call(['ffmpeg', '-y', '-loglevel', 'error', '-i', a.depuis_wav, raw])
+    else:
+        data, mime = synth(texte_lu(a.name), a.voix, a.modele, api_key())
+        if data[:4] == b'RIFF':          # Gemini renvoie déjà un wav
+            open(raw, 'wb').write(data)
+        else:                            # PCM brut 16 bits
+            rate = int(mime.split('rate=')[1].split(';')[0]) if 'rate=' in mime else 24000
+            with wave.open(raw, 'wb') as w:
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(data)
     wav = os.path.join(out, 'voix_gemini.wav')   # align7 attend du 24 kHz mono
     subprocess.check_call(['ffmpeg', '-y', '-loglevel', 'error', '-i', raw, '-ar', '24000', '-ac', '1', wav])
     os.remove(raw)
