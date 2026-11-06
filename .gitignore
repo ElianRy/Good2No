@@ -1,0 +1,9 @@
+__pycache__/
+*.mp4
+*.wav
+*.pcm
+*_parts/
+at_*.png
+sheet*.png
+*.log
+render_status*.txt

@@ -1,0 +1,108 @@
+TEXTES VOIX GOOD2NO — à coller dans Gemini (Google AI Studio, « Speech generation », modèle Gemini 3.1 Flash TTS)
+
+Les mots entre crochets [ ] sont des consignes de voix : Gemini ne les lit pas, il change juste le ton.
+Test d'abord avec la 1re phrase. Si Gemini LIT les crochets à voix haute, dis-le moi : ton modèle utilise une autre syntaxe et je te convertis tout.
+
+CONSIGNE DE STYLE (champ « Style instructions », la même pour les 3) :
+Conteur TikTok captivant, en français. Rythme rapide. La TOUTE PREMIÈRE phrase est dite fort, avec choc et énergie maximale, jamais chuchotée ni murmurée. Pauses courtes avant les révélations. Ton complice quand tu dis « abonne-toi ».
+
+VOIX : essaie Fenrir ou Puck (énergiques). Si c'est trop, Charon (plus documentaire).
+Un fichier audio par vidéo (wav ou mp3).
+
+
+========================================
+1) VIOLET JESSOP
+========================================
+[shocked] [excited] [loud] Survivre au Titanic… et à deux autres naufrages ?!
+
+[enthusiasm] Voici Violet Jessop. Hôtesse sur les plus grands paquebots du monde.
+
+[storytelling] 1911. Elle travaille sur l'Olympic, le jumeau du Titanic.
+[fast] [tense] Ils quittent Southampton… et boum ! Un navire de guerre leur défonce la coque.
+[relieved] Personne ne meurt. Premier accident.
+
+[mysterious] Quelques mois plus tard, on l'envoie sur son petit frère : le Titanic.
+
+[serious] [tense] Nuit du 14 avril 1912. L'iceberg.
+[fast] Violet aide les passagers à monter dans les canots.
+[surprised] Puis elle embarque dans le canot numéro 16… et un officier lui met un bébé dans les bras.
+
+[sad] [slow] Le Titanic disparaît sous ses yeux. Elle tient le bébé toute la nuit, dans le froid.
+
+[friendly] [fast] Si t'aimes les histoires que personne ne te raconte, abonne-toi.
+[excited] Parce que c'est pas fini.
+
+[determination] 1916. La guerre. Violet est infirmière sur le Britannic, le troisième frère, devenu navire-hôpital.
+[shocked] [loud] Une mine allemande explose.
+[tense] Le navire coule en cinquante-cinq minutes.
+
+[panicked] [fast] Son canot est aspiré vers les hélices… qui tournent encore. Elle saute à l'eau.
+[serious] Elle est gravement blessée à la tête.
+[amazed] Et elle survit. Encore.
+
+[mysterious] [slow] Des années plus tard, une nuit d'orage, son téléphone sonne. Une femme lui dit : « C'était moi, le bébé du canot. »
+
+[suspense] Problème : d'après les archives, le seul bébé de ce canot était mort depuis des années.
+
+[curious] Alors… qui a appelé ? Dis-le moi en commentaire.
+
+========================================
+2) PHINEAS GAGE
+========================================
+[shocked] [excited] [loud] Une barre de fer lui traverse le crâne… et il parle au médecin juste après ?!
+
+[storytelling] Vermont, 1848. Phineas Gage, vingt-cinq ans, chef d'équipe sur un chantier de chemin de fer. Son boulot : faire sauter la roche.
+
+[fast] On creuse un trou. On verse la poudre. Et on tasse avec une barre de fer d'un mètre dix. Six kilos.
+
+[tense] [slow] Une seconde d'inattention. La barre frappe la roche. Une étincelle.
+
+[loud] [shocked] Boum ! La barre entre sous sa pommette gauche, passe derrière l'œil… et ressort par le haut du crâne.
+[amazed] Elle retombe vingt-cinq mètres plus loin.
+
+[curious] Et Gage ? [amazed] Il se relève. Il parle. On l'assoit sur une charrette.
+[amused] Au médecin qui arrive, il lance : « Docteur, voilà du travail pour vous. »
+
+[friendly] [fast] Si t'aimes les histoires de miraculés, abonne-toi.
+[mysterious] Parce que la suite est encore plus bizarre.
+
+[serious] Il perd son œil gauche. Une infection manque de le tuer. Mais il s'en sort.
+[ominous] Sauf que, selon son médecin, ses amis disaient : « Ce n'est plus Gage. »
+
+[dramatic] Pendant cent cinquante ans, on a raconté qu'il était devenu un monstre. Bagarreur. Ivrogne. Vagabond.
+
+[skeptical] Le problème ? Ce récit a été publié vingt ans après l'accident.
+[amused] Et en vrai… Gage est parti au Chili, conduire des diligences, pendant sept ans. Pas vraiment le boulot d'un homme qui a perdu la tête.
+
+[serious] Il meurt en 1860, à trente-six ans. Son crâne et sa barre sont toujours exposés à Harvard.
+
+[curious] Alors, d'après toi : monstre… ou miraculé ?
+
+========================================
+3) HACHIKŌ
+========================================
+[amazed] [excited] [loud] Attendre quelqu'un tous les jours… pendant presque dix ans ?!
+
+[warm] Tokyo, 1924. Un chiot akita arrive chez Hidesaburō Ueno, professeur d'agriculture. Il l'appelle Hachi.
+
+[warm] Chaque matin, Ueno prend le train à la gare de Shibuya. Et chaque soir, Hachi l'attend à la sortie.
+
+[serious] Jusqu'au 21 mai 1925. [sad] Ueno fait un AVC, en plein travail. Il ne reviendra jamais.
+
+[sad] [slow] Le soir, Hachi est à la gare. Il attend. Le lendemain aussi. Et le jour d'après.
+
+[friendly] Si ce genre d'histoire te touche, abonne-toi. Mais reste jusqu'à la fin.
+
+[determination] Les mois passent. Puis les années. Certains le chassent. D'autres le nourrissent. Et lui revient. Tous les jours.
+
+[enthusiasm] En 1932, un journal raconte son histoire. Tout le Japon le découvre. On l'appelle Hachikō.
+
+[amazed] En 1934, on lui construit une statue en bronze devant la gare… et Hachikō assiste à l'inauguration de sa propre statue.
+
+[sad] [soft] Le 8 mars 1935, on le retrouve mort dans une rue de Shibuya. Il avait attendu neuf ans et demi.
+
+[serious] Pendant la guerre, sa statue est fondue. [hopeful] Mais on la refait en 1948. Elle est toujours là.
+
+[emotional] [soft] Et en 2015, on a enfin fait ce qu'il attendait : une statue de Ueno… qui retrouve son chien.
+
+[warm] Et toi, ton animal… il t'attendrait combien de temps ?
