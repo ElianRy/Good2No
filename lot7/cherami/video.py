@@ -55,27 +55,29 @@ ENV_LAB = Env(sky_top=(60, 70, 85), sky_hor=(60, 70, 85), fog=(50, 58, 70), fog_
 
 # ------------------------------------------------------------------ la forêt d'Argonne (ravin de Charlevaux)
 def hground(x, z):
-    """ravin : fond à y=0 le long de z, pentes de part et d'autre"""
-    return 0.06 * x * x + 0.3 * math.sin(z * 0.2) * 0.3
+    """ravin : fond à y=0 le long de z, pentes douces qui montent jusqu'à un plateau à ~6 m"""
+    return 6.0 * (1 - math.exp(-(x / 6.5) ** 2)) + 0.09 * math.sin(z * 0.2)
 
 
 def forest(seed=1, emu=False):
     rr = np.random.default_rng(seed)
-    ms = [grid(-40, -60, 40, 60, 24, 30, hground, (255, 255, 255), 'mud', 3.0)]
+    ms = [grid(-40, -60, 40, 60, 48, 40, hground, (255, 255, 255), 'mud', 3.0)]   # maillage fin : le sol suit bien la pente
     for i in range(70):
         x, z = rr.uniform(-38, 38), rr.uniform(-58, 58)
         if abs(x) < 2.0 and -12 < z < 12:
             continue
-        y = hground(x, z)
+        y = min(hground(x, z), hground(x - 0.4, z), hground(x + 0.4, z))   # pied du tronc enfoncé du côté bas de la pente
         if rr.random() < 0.65:
-            ms.append(deciduous(rr.uniform(7, 11), rr.uniform(2.2, 3.4), int(rr.integers(0, 99)), (255, 255, 255), 'leaves_autumn').xf(trans(x, y - 0.1, z)))
-        else:
-            ms.append(deciduous(rr.uniform(6, 9), rr.uniform(0.6, 1.2), int(rr.integers(0, 99)), (120, 100, 70), 'bark').xf(trans(x, y - 0.1, z)))   # arbres déchiquetés
+            ms.append(deciduous(rr.uniform(7, 11), rr.uniform(2.2, 3.4), int(rr.integers(0, 99)), (255, 255, 255), 'leaves_autumn').xf(trans(x, y - 0.3, z)))
+        else:   # arbres déchiquetés par les obus : tronc cassé, sans feuillage
+            hh = rr.uniform(2.5, 5.0)
+            ms.append(cyl(0.22, 0.14, hh, 6, (120, 95, 70), 'bark').xf(trans(x, y - 0.3, z)))
+            ms.append(cyl(0.14, 0.02, 0.6, 5, (150, 120, 85)).xf(M(trans(x, y - 0.3 + hh, z), rotz(rr.uniform(-0.5, 0.5)))))
     for i in range(30):   # troncs couchés, rochers, souches
         x, z = rr.uniform(-12, 12), rr.uniform(-25, 25)
         y = hground(x, z)
         if i % 3 == 0:
-            ms.append(cyl(0.18, 0.15, rr.uniform(2, 4), 6, (110, 80, 50), 'bark').xf(M(trans(x, y + 0.15, z), rotz(math.pi / 2), roty(rr.uniform(0, 3)))))
+            ms.append(cyl(0.18, 0.15, rr.uniform(2, 4), 6, (110, 80, 50), 'bark').xf(M(trans(x, y + 0.12, z), roty(rr.uniform(-0.3, 0.3)), rotx(math.pi / 2))))   # tronc couché le long de la pente
         else:
             ms.append(rock(rr.uniform(0.3, 0.8), i, (150, 140, 125)).xf(trans(x, y - 0.1, z)))
     ms.append(grass_tufts(-14, -30, 14, 30, 160, 3, hfun=hground, col=(130, 110, 60), h=0.3))
@@ -216,7 +218,7 @@ def shot_loft(lt, dur, tg):
         a = tg * 1.2 + k * 1.25
         ms.append(pigeon_flying(tg + k * 0.3, (3.5 * math.cos(a), 4.0 + 0.5 * math.sin(a * 2), 2 + 3.5 * math.sin(a)), -a, 0.0, scale_=1.4))
     for k in range(4):
-        ms.append(pigeon(pose='stand', capsule=False).xf(M(trans(-1.5 + k * 0.9, 2.38, 1.3), roty(0.3 * k))))
+        ms.append(pigeon(pose='stand', capsule=False).xf(M(trans(-1.5 + k * 0.9, 2.55, 1.3), roty(0.3 * k))))
     return merge(ms), cam, ENV_SKY, {}
 
 
@@ -224,7 +226,7 @@ def shot_loft(lt, dur, tg):
 def shot_forest(lt, dur, tg):
     """la forêt d'Argonne en octobre : brouillard, arbres déchiquetés (un émeu à chapeau traîne entre les arbres)"""
     u = lt / max(dur, 0.1)
-    cam = Cam((-6 + 3 * u, 4.5, 16 - 2 * u), (2, 2.0, -6), 50)
+    cam = Cam((-6 + 3 * u, 5.6, 16 - 2 * u), (2, 2.0, -6), 50)
     leaves = C2.particles((0, 4, 4), tg, cam, 30, (8, 5, 8), 0.8, 0.12, (190, 120, 50), seed=2, spin=True)
     return merge([FOREST_EMU, soldiers_in_ravine(tg), leaves]), cam, ENV_FOREST, {}
 
@@ -265,7 +267,7 @@ def shot_name(lt, dur, tg):
     """gros plan sur Cher Ami dans sa cage (retiens son nom)"""
     c = np.array([-1.5, hground(-1.5, 2.5), 2.5])
     bk = pigeon_basket(0).xf(trans(c))
-    p = pigeon(pose='stand', capsule=False).xf(M(trans(c + np.array([0, 0.52, 0.05])), roty(0.5 + 0.2 * math.sin(tg * 1.7))))
+    p = pigeon(pose='stand', capsule=False).xf(M(trans(c + np.array([0, 0.585, 0.05])), roty(0.5 + 0.2 * math.sin(tg * 1.7))))
     cam = cam_lerp(Cam(tuple(c + np.array([0.45, 0.75, 0.85])), tuple(c + np.array([0, 0.55, 0.05])), 40), Cam(tuple(c + np.array([0.32, 0.7, 0.62])), tuple(c + np.array([0, 0.55, 0.05])), 38), lt / dur)
     return merge([FOREST, bk, p]), cam, ENV_FOREST, dict(post_pil=lambda im: C2.vignette(im, 0.6))
 
@@ -275,7 +277,7 @@ SPOTS = [(-2, hground(-2, 0), 0.5), (3, hground(3, 3), 3), (-1, hground(-1, -4),
 
 
 def shot_shells(lt, dur, tg):
-    cam = Cam((5, 3.0, 11), (0, 1, 0), 52)
+    cam = Cam((5, 4.6, 11), (0, 1, 0), 52)
     ms = [FOREST, soldiers_in_ravine(tg, duck=1.0), shells(lt, cam, [0.15, 0.7, 1.2, 1.7], SPOTS)]
     fl = max([C2.decay(lt, t, 7) for t in (0.15, 0.7, 1.2, 1.7)])
     return merge(ms), C2.shake(cam, 0.12 * fl, tg), ENV_SMOKE, dict(flash=0.4 * fl, flash_col=(255, 210, 150))
@@ -354,7 +356,7 @@ def shot_last(lt, dur, tg):
 
 def shot_message(lt, dur, tg):
     """le message roulé glisse dans la capsule, sur la patte"""
-    c = np.array([0.0, 1.0, 0.0])
+    c = np.array([0.0, 1.075, 0.0])
     roll = min(1.0, lt / 1.6)
     bird = pigeon(pose='stand', capsule=True).xf(M(trans(c), roty(math.pi / 2)))
     note = box(0.18 * (1 - roll) + 0.012, 0.004 + 0.01 * roll, 0.12 * (1 - 0.6 * roll), (255, 255, 255), 'note').xf(trans(0.05, 0.93 + 0.02 * roll, 0.12 - 0.05 * roll))
@@ -386,7 +388,7 @@ def shot_takeoff(lt, dur, tg):
         pp[1] = max(pp[1], hground(pp[0], pp[2]) + 0.1)
         bird = pigeon(tg * 8, pose='fall', capsule=True, leg_hurt=True).xf(M(trans(pp), roty(0.8), rotz(f * 6), scale(1.3)))
     ms = [FOREST, soldiers_in_ravine(tg), ger_line(tg, aim=True), bird]
-    cam = Cam((-4.5, 1.6, 8.5), (1.5, 3.5, -2), 55)
+    cam = Cam((-4.5, 3.7, 8.5), (1.5, 4.0, -2), 55)
     if lt > t_fire:
         for k, (x, z) in enumerate([(9.5, -3), (10.5, 1), (9.8, 5)]):
             if ((tg * 7 + k * 0.37) % 1.0) < 0.25:
@@ -402,7 +404,9 @@ def shot_again(lt, dur, tg):
     up = max(0.0, lt - 0.35)
     pp = c + np.array([0, 0.12 + up * up * 3.0 + up * 0.8, -up * 0.6])
     bird = pigeon(tg * (10 if up == 0 else 24), pose='fly', leg_hurt=True).xf(M(trans(pp), roty(math.pi * 0.8), rotx(-0.3 if up else 0.0), scale(1.2)))
-    cam = Cam(tuple(c + np.array([0.9, 0.35, 1.2])), tuple(c + np.array([0, 0.25 + up * 1.2, 0])), 48)
+    cp = c + np.array([0.9, 0.0, 1.2])
+    cp[1] = hground(cp[0], cp[2]) + 0.45
+    cam = Cam(tuple(cp), tuple(c + np.array([0, 0.25 + up * 1.2, 0])), 50)
     return merge([FOREST, bird]), cam, ENV_SMOKE, {}
 
 
@@ -436,7 +440,7 @@ def shot_arrive(lt, dur, tg):
         f = 1 - lt / t_land
         bird = pigeon_flying(tg, land + np.array([1.5 * f, 1.2 * f, 2.5 * f]), math.pi + 0.5, -0.2, hurt=True)
     else:
-        bird = pigeon(pose='stand', leg_hurt=True, capsule=True).xf(M(trans(land + np.array([0, 0.07, 0])), roty(0.6), rotz(0.15)))
+        bird = pigeon(pose='stand', leg_hurt=True, capsule=True).xf(M(trans(land + np.array([0, 0.13, 0])), roty(0.6), rotz(0.15)))
     blood = box(0.05, 0.04, 0.01, (120, 35, 35)).xf(M(trans(land + np.array([0.05, 0.1, 0.06])), roty(0.6))) if lt >= t_land else Mesh()
     hand = HANDLER.mesh((1.3, 0, 2.5), -0.9, dict(ik_l=(0.6, 2.3, 1.6), ra=(0.2, 0.1, 0.3), hp=-0.4)) if lt > t_land + 0.4 else Mesh()
     cam = cam_lerp(Cam((1.4, 2.7, 2.6), tuple(land + np.array([0, 0.1, 0])), 42), Cam((1.1, 2.62, 2.2), tuple(land + np.array([0, 0.1, 0])), 38), lt / dur)
@@ -496,11 +500,11 @@ INF = infirmary()
 
 def shot_medic(lt, dur, tg, wood=False):
     """à l'infirmerie : le médecin soigne Cher Ami posé sur la table"""
-    bird = pigeon(pose='stand', capsule=False, leg_hurt=not wood, wood_leg=wood).xf(M(trans(0.0, 0.98, -0.9), roty(0.5)))
-    band = box(0.1, 0.05, 0.13, (245, 245, 240)).xf(M(trans(0.0, 1.02, -0.9), roty(0.5)))
+    bird = pigeon(pose='stand', capsule=False, leg_hurt=not wood, wood_leg=wood).xf(M(trans(0.0, 1.045, -0.9), roty(0.5)))
+    band = box(0.1, 0.05, 0.13, (245, 245, 240)).xf(M(trans(0.0, 1.08, -0.9), roty(0.5)))
     ms = [INF, bird, band, MEDIC.mesh((0.0, 0, -0.1), math.pi, dict(ik_l=(-0.12, 1.05, -0.8), ik_r=(0.13, 1.05, -0.82), hp=0.6, lean=0.25))]
     if wood:
-        cam = cam_lerp(Cam((0.55, 1.12, -0.3), (0.0, 1.0, -0.9), 40), Cam((0.45, 1.08, -0.4), (0.0, 1.0, -0.9), 38), lt / dur)
+        cam = cam_lerp(Cam((0.6, 1.02, -0.2), (0.0, 0.98, -0.9), 42), Cam((0.55, 1.01, -0.27), (0.0, 0.98, -0.9), 40), lt / dur)
         ms = [INF, bird, MEDIC.mesh((0.0, 0, -0.1), math.pi, dict(ra=(0.4, 0.1, 0.3), la=(0.4, 0.1, 0.3), hp=0.6))]
     else:
         cam = cam_lerp(Cam((1.4, 1.6, 0.6), (0.0, 1.0, -0.8), 48), Cam((1.2, 1.55, 0.4), (0.0, 1.0, -0.8), 46), lt / dur)
@@ -512,11 +516,12 @@ def shot_woodleg(lt, dur, tg):
 
 
 def shot_medal(lt, dur, tg):
-    """la croix de guerre accrochée près de Cher Ami"""
-    m = croix_de_guerre().xf(M(trans(0.1, 1.08, -0.85), roty(0.4 * math.sin(tg * 1.2)), scale(1.6)))
-    bird = pigeon(pose='stand', capsule=False, wood_leg=True).xf(M(trans(-0.07, 0.98, -0.95), roty(0.5)))
-    cam = cam_lerp(Cam((0.35, 1.15, -0.45), (0.03, 1.04, -0.9), 38), Cam((0.28, 1.12, -0.55), (0.03, 1.04, -0.9), 34), lt / dur)
-    return merge([INF, m, bird]), cam, ENV_TENT, dict(post_pil=lambda im: C2.vignette(im, 0.5))
+    """la croix de guerre, posée sur un petit chevalet à côté de Cher Ami et de sa patte de bois sculptée"""
+    stand = merge([box(0.06, 0.004, 0.04, (110, 80, 50)).xf(trans(0.12, 0.91, -0.9)), box(0.004, 0.11, 0.004, (110, 80, 50)).xf(M(trans(0.12, 0.91, -0.91), rotx(-0.15)))])
+    m = croix_de_guerre().xf(M(trans(0.12, 0.965, -0.895), rotx(-0.15), roty(-0.35 + 0.15 * math.sin(tg * 1.2)), scale(1.4)))
+    bird = pigeon(pose='stand', capsule=False, wood_leg=True).xf(M(trans(-0.15, 1.06, -1.25), roty(0.9)))
+    cam = cam_lerp(Cam((0.3, 1.02, -0.5), (0.1, 0.98, -0.92), 36), Cam((0.27, 1.01, -0.55), (0.1, 0.98, -0.92), 33), lt / dur)
+    return merge([INF, stand, m, bird]), cam, ENV_TENT, dict(post_pil=lambda im: C2.vignette(im, 0.5))
 
 
 # ------------------------------------------------------------------ 20-23. le doute, le nom, l'ADN
@@ -567,7 +572,7 @@ def shot_ledger(lt, dur, tg):
 
 def shot_name2(lt, dur, tg):
     """Cher Ami… ou chère amie ? Gros plan, il tourne la tête"""
-    bird = pigeon(pose='stand', capsule=False, wood_leg=True).xf(M(trans(0, 0.98, -0.9), roty(0.6 * math.sin(tg * 1.4))))
+    bird = pigeon(pose='stand', capsule=False, wood_leg=True).xf(M(trans(0, 1.06, -0.9), roty(0.6 * math.sin(tg * 1.4))))
     cam = Cam((0.2, 1.15, -0.25), (0.0, 1.06, -0.9), 40)
     return merge([INF, bird]), cam, ENV_TENT, {}
 
@@ -577,7 +582,7 @@ def museum():
           box(0.1, 4, 10, (65, 67, 75)).xf(trans(-4, 0, 0))]
     ms.append(box(0.9, 1.0, 0.7, (40, 40, 45)).xf(trans(0, 0, -1.5)))                                  # socle
     ms.append(box(0.5, 0.08, 0.3, (130, 90, 55)).xf(trans(0, 1.0, -1.5)))                               # planchette en bois
-    ms.append(pigeon(pose='stand', capsule=False, wood_leg=True).xf(M(trans(0, 1.17, -1.5), roty(0.4))))
+    ms.append(pigeon(pose='stand', capsule=False, wood_leg=True).xf(M(trans(0, 1.24, -1.5), roty(0.4))))
     ms.append(box(0.8, 0.7, 0.6, (200, 225, 235), alpha=0.25).xf(trans(0, 1.0, -1.5)))                 # vitrine
     ms.append(box(0.3, 0.12, 0.02, (220, 210, 180)).xf(M(trans(0.25, 0.85, -1.14), rotx(-0.3))))         # cartel
     ms.append(box(1.0, 1.3, 0.04, (90, 80, 60)).xf(trans(-2.2, 1.6, -3.4)))

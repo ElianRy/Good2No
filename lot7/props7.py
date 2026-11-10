@@ -762,8 +762,11 @@ def pigeon(flap=0.0, fly=True, leg_hurt=False, capsule=True, wood_leg=False, pos
         hurt = leg_hurt and s > 0
         top = M(body, trans(s * 0.03, -0.07, 0.0))
         if pose == 'stand':
-            if wood_leg and s > 0:
-                legs.append(cyl(0.008, 0.008, 0.08, 4, (150, 110, 60)).xf(M(top, trans(0, -0.08, 0))))
+            if wood_leg and s > 0:   # petite patte de bois taillée par les soldats : cheville tournée, 2 bagues sculptées, pied rond
+                legs.append(cyl(0.006, 0.011, 0.085, 6, (175, 130, 75)).xf(M(top, trans(0, -0.085, 0))))
+                for yy in (-0.03, -0.055):
+                    legs.append(cyl(0.0125, 0.0125, 0.006, 6, (120, 85, 45)).xf(M(top, trans(0, yy, 0))))
+                legs.append(cyl(0.016, 0.016, 0.006, 8, (150, 110, 60)).xf(M(top, trans(0, -0.088, 0.004))))
             elif not hurt:
                 legs.append(box(0.012, 0.07, 0.012, (200, 90, 90)).xf(M(top, trans(0, -0.07, 0))))
                 for a_ in (-0.4, 0, 0.4):
@@ -803,13 +806,42 @@ def dna_helix(t=0.0, n=16, h=1.6, r=0.25):
     return merge(ms)
 
 
+def _ribbon_cdg(d, n):
+    """ruban de la croix de guerre 1914-1918 : vert, bords rouges, 7 fines raies rouges"""
+    d.rectangle([0, 0, n, n], fill=(40, 125, 60))
+    d.rectangle([0, 0, 1, n], fill=(200, 40, 40))
+    d.rectangle([n - 2, 0, n, n], fill=(200, 40, 40))
+    for k in range(7):
+        x = 5 + k * 3.4
+        d.line([x, 0, x, n], fill=(200, 40, 40))
+
+
+tex_draw('ribbon_cdg2', _ribbon_cdg)
+
+
 def croix_de_guerre():
-    """médaille : croix de bronze + ruban vert à liserés rouges, palme"""
-    b = (170, 130, 60)
-    ms = [box(0.045, 0.05, 0.004, (255, 255, 255), 'ribbon_cdg').xf(trans(0, 0.06, 0)),
-          box(0.05, 0.016, 0.008, b).xf(trans(0, 0, 0)), box(0.016, 0.05, 0.008, b).xf(trans(0, 0, 0)),
-          cyl(0.012, 0.012, 0.01, 8, (190, 150, 70)).xf(M(rotx(math.pi / 2), trans(0, -0.005, 0))),
-          box(0.03, 0.004, 0.005, (190, 150, 70)).xf(M(trans(0, 0.065, 0.004), rotz(0.4)))]
+    """croix de guerre 1914-1918 (~4 cm) : croix pattée en bronze, 2 épées croisées, médaillon central, anneau, ruban vert et rouge.
+    face vers +z, centre de la croix à l'origine"""
+    br, br2, br3 = (165, 120, 55), (205, 160, 80), (120, 85, 40)
+    ms = []
+    for k in range(4):     # 4 branches évasées (croix pattée)
+        arm = slab([(-0.003, 0.003), (0.003, 0.003), (0.0085, 0.02), (-0.0085, 0.02)], 0.003, br, plane='xz')
+        ms.append(arm.xf(M(rotz(k * math.pi / 2), rotx(-math.pi / 2))))
+        ms.append(box(0.016, 0.002, 0.004, br3).xf(M(rotz(k * math.pi / 2), trans(0, 0.0185, 0.0))))   # liseré au bout
+    for k in (1, 3):       # deux épées croisées entre les branches
+        a = k * math.pi / 4 + (0 if k == 1 else math.pi / 2)
+        ms.append(box(0.0022, 0.05, 0.0025, br2).xf(M(rotz(a), trans(0, -0.025, 0.0015))))
+        for e in (-1, 1):
+            ms.append(box(0.007, 0.002, 0.003, br3).xf(M(rotz(a), trans(0, e * 0.017, 0.002))))      # gardes
+    ms.append(cyl(0.0075, 0.0075, 0.004, 12, br2).xf(M(rotx(math.pi / 2), trans(0, -0.001, 0))))      # médaillon (Marianne)
+    ms.append(cyl(0.0052, 0.0052, 0.0045, 10, br3).xf(M(rotx(math.pi / 2), trans(0, -0.0015, 0))))
+    ms.append(box(0.004, 0.005, 0.0042, br2).xf(trans(0, -0.003, 0.0012)))                             # profil
+    # anneau + ruban
+    for k in range(8):
+        a0, a1 = k * math.pi / 4, (k + 1) * math.pi / 4
+        ms.append(rod((0.004 * math.cos(a0), 0.0245 + 0.004 * math.sin(a0), 0), (0.004 * math.cos(a1), 0.0245 + 0.004 * math.sin(a1), 0), 0.0009, br2, n=3))
+    ms.append(box(0.036, 0.042, 0.0015, (255, 255, 255), 'ribbon_cdg2').xf(trans(0, 0.029, -0.001)))
+    ms.append(box(0.038, 0.004, 0.003, br2).xf(trans(0, 0.07, -0.001)))                                 # barrette
     return merge(ms)
 
 
@@ -864,7 +896,7 @@ def hand_image(bones=True, ring=False, bg=(150, 220, 120), flesh=(120, 180, 95),
         if fracture:
             ms.append(box(0.012, 0.004, 0.005, bg).xf(M(trans(-0.012, -0.165, bz + 0.001), rotz(0.4))))
     if ring:
-        ms.append(box(0.03, 0.012, 0.005, ring_col).xf(trans(0.013, 0.005, 0.005)))
+        ms.append(box(0.03, 0.012, 0.005, ring_col).xf(trans(0.013, 0.048, 0.005)))   # alliance sur la 1re phalange de l'annulaire
     if coin:
         ms.append(cyl(0.02, 0.02, 0.004, 8, (15, 15, 15)).xf(M(rotx(math.pi / 2), trans(0.0, 0.0, 0.07))))
     return merge(ms)

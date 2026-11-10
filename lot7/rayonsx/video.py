@@ -94,15 +94,16 @@ def lab(emu=False):
     # tabouret + écran fluorescent posé plus loin
     ms.append(box(0.45, 0.72, 0.45, (90, 60, 40), 'wood_dark').xf(trans(SCREEN[0], 0, SCREEN[2])))
     # étagère à gauche (bocaux, livres)
-    ms.append(shelf(1.4, 2.2, 0.4, 4).xf(M(trans(-2.35, 0, -0.6), roty(math.pi / 2))))
+    ms.append(shelf(1.4, 2.2, 0.4, 4).xf(M(trans(-2.25, 0, -0.6), roty(math.pi / 2))))   # décollée du mur (pas de mélange de textures)
     for lv in range(4):
         for j in range(4):
             if emu and lv == 3 and j == 1:
                 continue
-            ms.append(box(0.25, 0.3, 0.06 + 0.04 * rr.random(), [(120, 50, 40), (50, 70, 100), (130, 110, 60)][(lv + j) % 3]).xf(trans(-2.35, lv * 0.55 + 0.03, -1.1 + j * 0.32)))
+            ms.append(box(0.25, 0.3, 0.06 + 0.04 * rr.random(), [(120, 50, 40), (50, 70, 100), (130, 110, 60)][(lv + j) % 3]).xf(trans(-2.25, lv * 0.55 + 0.03, -1.1 + j * 0.32)))
     if emu:   # statuette en bronze d'un émeu à chapeau, sur le haut de l'étagère
-        ms.append(cyl(0.09, 0.1, 0.06, 8, (60, 45, 30)).xf(trans(-2.35, 2.2, -0.75)))
-        ms.append(emu_mesh((-2.35, 2.26, -0.75), math.pi / 2 - 0.4, scale_=0.24, statue=(150, 115, 55)))
+        ms.append(cyl(0.13, 0.15, 0.05, 10, (70, 50, 32)).xf(trans(-2.25, 2.2, -0.75)))                     # socle en bois tourné
+        ms.append(cyl(0.11, 0.11, 0.02, 10, (180, 150, 90)).xf(trans(-2.25, 2.25, -0.75)))
+        ms.append(emu_mesh((-2.25, 2.27, -0.75), math.pi / 2 - 0.4, scale_=0.34))                          # statuette peinte, détaillée, avec son chapeau
     # tableau noir avec un grand X
     ms.append(box(1.4, 1.0, 0.04, (255, 255, 255), 'blackboard').xf(trans(-0.9, 1.5, -2.12)))
     ms.append(box(1.5, 0.05, 0.08, (90, 60, 40)).xf(trans(-0.9, 1.48, -2.08)))
@@ -187,6 +188,8 @@ def institute():
     ms = [ground(-80, -80, 80, 80, 'gravel', ts=3.0), box(36, 12, 14, (255, 255, 255), 'stone_block', ts=2.0).xf(trans(0, 0, -12))]
     for x in np.arange(-15, 16, 3.0):
         for y in (2.0, 6.5):
+            if y < 5 and abs(x) < 2.6:     # pas de fenêtre sur la porte d'entrée
+                continue
             lit = (x * 7 + y) % 3 < 1
             ms.append(box(1.4, 2.4, 0.1, (255, 255, 255), 'window_lit' if lit else 'window').xf(trans(x, y, -4.95)))
             ms.append(box(1.7, 0.2, 0.25, (190, 180, 160)).xf(trans(x, y - 0.15, -4.9)))
@@ -246,14 +249,22 @@ def shot_dark(lt, dur, tg):
     return merge(ms), cam, env_dark(0.05, lit), {}
 
 
+SN = np.array([-math.sin(0.9), 0.0, math.cos(0.9)])      # normale de l'écran (vers l'avant)
+SS = np.array([math.cos(0.9), 0.0, math.sin(0.9)])       # côté de l'écran
+
+
 def shot_hand(lt, dur, tg):
-    """il passe la main devant l'écran : sur l'écran, les os de ses doigts"""
-    t_bones = WT(5, 'voit') - cut['hand'] - 0.2
+    """il passe lentement la main devant l'écran : l'ombre de ses os apparaît sur l'écran"""
     s = np.array([SCREEN[0], 1.2, SCREEN[2]])
-    pose = dict(ik_r=tuple(s + np.array([-0.45, 0.07, 0.35])), la=(0.2, 0.1, 0.3), hp=0.2, hy=-0.3)
-    cam = cam_lerp(Cam(tuple(s + np.array([-0.95, 0.15, 0.8])), tuple(s + np.array([0, 0.05, 0])), 45), Cam(tuple(s + np.array([-0.75, 0.12, 0.6])), tuple(s + np.array([0, 0.05, 0])), 42), lt / dur)
-    ms = [LAB, screen_at(1.0, hand=lt > t_bones), RO.mesh((SCREEN[0] - 0.95, 0, SCREEN[2] + 0.75), 2.3, pose)]
-    return merge(ms), cam, env_dark(0.05, 1.0), {}
+    k = min(1.0, max(0.0, (lt - 0.2) / 1.0))                 # la main monte et glisse devant l'écran
+    hand = s + SN * 0.16 + SS * (0.35 * (1 - k)) + np.array([0, -0.25 * (1 - k), 0])
+    body = s + SN * 0.62 - SS * 0.12
+    yaw = math.atan2(-SN[0], -SN[2])
+    pose = dict(ik_r=tuple(hand), la=(0.2, 0.1, 0.3), hp=0.15, lean=0.15)
+    cp = s + SN * 1.05 + SS * 0.75 + np.array([0, 0.25, 0])
+    cam = Cam(tuple(cp), tuple(s + SN * 0.1 + np.array([0, 0.0, 0])), 50)
+    ms = [LAB, screen_at(1.0, hand=k > 0.85), RO.mesh((body[0], 0, body[2]), yaw, pose)]
+    return merge(ms), cam, env_dark(0.05, 1.0).copy(amb=0.22), {}
 
 
 def shot_screen_bones(lt, dur, tg):
@@ -289,19 +300,22 @@ def tube_over_plate(glow):
     return merge([stand, t])
 
 
-def flat_hand(skin=(236, 205, 185)):
-    """main d'Anna posée à plat sur la plaque, doigts vers -z (le poignet au bord avant de la plaque)"""
-    ms = [box(0.085, 0.022, 0.1, skin).xf(trans(0, 0, 0.0))]
+def flat_hand(c, skin=(236, 205, 185)):
+    """main d'Anna posée à plat sur la plaque, doigts vers -z ; c = centre de la paume"""
+    ms = [box(0.085, 0.022, 0.1, skin)]
     for k, L in enumerate((0.07, 0.085, 0.08, 0.065)):
         ms.append(box(0.018, 0.018, L, skin).xf(trans(-0.03 + k * 0.02, 0, -0.05 - L / 2)))
     ms.append(box(0.02, 0.018, 0.06, skin).xf(M(trans(-0.04, 0, 0.0), roty(0.6), trans(0, 0, -0.03))))
     ms.append(box(0.02, 0.006, 0.015, (215, 180, 70)).xf(trans(-0.01, 0.018, -0.08)))     # alliance
-    return merge(ms).xf(trans(PLATE + np.array([0.02, 0.018, 0.05])))
+    return merge(ms).xf(trans(c))
 
 
 def anna_at_plate(k=1.0):
+    """Anna, penchée, la main gauche posée à plat sur la plaque : la main est placée là où l'IK amène vraiment le poignet"""
     wrist = PLATE + np.array([0.02, 0.06, 0.14])
-    return merge([ANNA.mesh((PLATE[0] + 0.12, 0, PLATE[2] + 0.5), math.pi, dict(ik_l=tuple(wrist), la=(0.3, 0.1, 0.3), hp=0.4, lean=0.3)), flat_hand()])
+    body = ANNA.mesh((PLATE[0] - 0.005, 0, PLATE[2] + 0.5), math.pi, dict(ik_l=tuple(wrist), la=(0.3, 0.1, 0.3), hp=0.4, lean=0.3))
+    h = ANNA.attach['hand_l'][:3, 3]
+    return merge([body, flat_hand((h[0], PLATE[1] + 0.018, h[2] - 0.055))])
 
 
 def flat_plate():

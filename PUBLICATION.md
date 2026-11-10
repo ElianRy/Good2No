@@ -14,3 +14,15 @@ Commentaire épinglé : Vous auriez survécu, vous ? Monstre ou miraculé, je ve
 Légende : Hachikō a attendu son maître à la gare pendant presque 10 ans 🐕 L'histoire vraie du chien le plus fidèle du monde, à Tokyo, Shibuya.
 Hashtags : #hachiko #chien #histoirevraie #japon #faitshistoriques
 Commentaire épinglé : Racontez-moi le truc le plus fidèle que votre animal ait fait ❤️
+
+## Poon Lim (Les survivants impossibles – ép. 25)
+Légende : 133 jours seul sur un radeau 🌊 Poon Lim #poonlim #survie #histoire #histoirevraie #naufrage
+Commentaire épinglé : Toi, tu aurais tenu combien de jours ? Sois honnête 👇
+
+## Cher Ami (Les animaux héros – ép. 26)
+Légende : Un pigeon a sauvé 194 soldats ? 🕊️ Cher Ami #cherami #pigeon #ww1 #histoire #animauxheros
+Commentaire épinglé : Vrai héros ou belle histoire inventée par l'armée ? 👇
+
+## Les rayons X (Les accidents qui ont changé la science – ép. 27)
+Légende : Elle a vu son propre squelette 💀 Rayons X #rayonsx #rontgen #science #histoire #histoirevraie
+Commentaire épinglé : Toi, tu aurais posé ta main 15 minutes sous les rayons ? 👇

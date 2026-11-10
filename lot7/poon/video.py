@@ -380,30 +380,75 @@ def shot_rain(lt, dur, tg):
 
 
 # ------------------------------------------------------------------ 14-15. le requin
+SHARK_X = 0.45      # centre du requin une fois sur le radeau (nez vers Poon, côté -x)
+SHARK_Y = 0.6       # ventre posé sur le plancher (plancher à 0.32)
+
+
+def shark_on_raft(tg, u=1.0, lunge=0.0, hit=0.0):
+    """requin hissé par-dessus le bord (jamais à travers les planches) puis qui se débat sur le plancher"""
+    x = SHARK_X + 1.5 * (1 - u)
+    y = SHARK_Y - 0.35 * (1 - u) + 0.12 * math.sin(math.pi * u) * (1 - u)
+    bend = (0.55 * math.sin(tg * 14) + 0.5 * hit) if u >= 1 else 0.2 * math.sin(tg * 8)
+    roll = 0.08 * math.sin(tg * 11) + 0.25 * hit
+    tilt = -0.35 * (1 - u)          # nez relevé quand il passe le bord
+    return shark(bend, jaw=0.5 + 0.5 * math.sin(tg * 10)).xf(M(trans(x - 0.15 * lunge, y, 0.0), roty(math.pi), rotz(tilt), rotx(roll)))
+
+
 def shot_shark(lt, dur, tg):
-    """il hisse un requin sur le radeau ; le requin se débat et l'attaque"""
+    """il hisse le requin par-dessus le bord ; le requin se débat et se jette sur lui"""
     t_att = WT(14, 'attaque.') - cut['shark'] - 0.2
-    on = min(1.0, lt / 1.2)
-    bend = 0.6 * math.sin(tg * 14) if on >= 1 else 0.2 * math.sin(tg * 8)
-    sp = np.array([0.3 + 0.9 * (1 - on), 0.42 - 0.8 * (1 - on), 0.0])
-    sh = shark(bend, jaw=0.5 + 0.5 * math.sin(tg * 10)).xf(M(trans(sp), roty(-0.4), rotx(0.15 * math.sin(tg * 12))))
-    back = min(1.0, max(0.0, lt - t_att) * 3)
-    pose = dict(ra=(1.4 - 0.6 * on, 0.4, 0.6), la=(1.4 - 0.6 * on, 0.4, 0.6), lean=-0.25 * back, ll=(0.3 * back, 0.3), rl=(-0.2 * back, 0.2))
-    ms = [sea_at(tg), raft_world(tg, [poon_on((-0.7, 0, -0.3 + 0.0 * back), 1.2, pose), sh], tin=False)]
-    cam = Cam((1.2, 1.4, 2.9), (-0.1, 0.7, 0), 50)
+    u = min(1.0, lt / 1.2)
+    att = max(0.0, lt - t_att)
+    lunge = min(1.0, att * 4) * (0.6 + 0.4 * math.sin(att * 12)) if att > 0 else 0.0
+    back = min(1.0, att * 3)
+    if u < 1:   # il tire la corde à deux mains, penché en arrière
+        rope_end = (SHARK_X + 1.5 * (1 - u) - 0.9, SHARK_Y - 0.3 * (1 - u) + 0.05, 0.0)
+        pose = dict(ik_l=(-0.55, 1.0, -0.08), ik_r=(-0.4, 1.0, 0.08), lean=-0.25, ll=(0.3, 0.3), rl=(-0.3, 0.2))
+        extra = [rod((-0.45, 1.0, 0.0), rope_end, 0.012, (215, 195, 140), n=3)]
+    else:
+        pose = dict(la=(1.3, 0.5, 0.5), ra=(1.3, 0.5, 0.5), lean=-0.3 * back, ll=(0.35 * back, 0.3), rl=(-0.25 * back, 0.2), hp=0.25)
+        extra = []
+    ms = [sea_at(tg), raft_world(tg, [poon_on((-1.0 - 0.05 * back, 0, 0.0), math.pi / 2, pose), shark_on_raft(tg, u, lunge)] + extra, tin=False)]
+    cam = Cam((1.4, 1.7, 3.4), (-0.3, 0.85, 0), 55)
     return merge(ms), C2.shake(cam, 0.04 * back, tg), ENV_DAY, {}
 
 
+FIGHT_T = 0.7          # un coup toutes les 0,7 s
+FIGHT_HIT = 0.72       # moment de l'impact dans le cycle
+
+
+def fight_hits(t0, t1):
+    out, k = [], 0
+    while t0 + k * FIGHT_T + FIGHT_HIT * FIGHT_T < t1:
+        out.append(t0 + k * FIGHT_T + FIGHT_HIT * FIGHT_T)
+        k += 1
+    return out
+
+
 def shot_fight(lt, dur, tg):
-    """Poon lève le bidon d'eau à deux mains au-dessus du requin"""
-    raise_ = 0.5 + 0.5 * math.sin(tg * 9)
-    hy = 1.75 + 0.25 * raise_
-    pose = dict(ik_l=(-0.82, hy, 0.15), ik_r=(-0.62, hy, 0.15), lean=0.15)
-    tin = cyl(0.14, 0.14, 0.4, 8, (170, 165, 150), 'metal').xf(M(trans(-0.72, hy + 0.02, 0.15), rotz(math.pi / 2), trans(0, -0.2, 0)))
-    sh = shark(0.5 * math.sin(tg * 15), 0.8).xf(M(trans(0.3, 0.42, 0.1), roty(-0.4)))
-    ms = [sea_at(tg), raft_world(tg, [poon_on((-0.72, 0, -0.25), 0.9, pose), tin, sh], tin=False)]
-    cam = Cam((0.4, 0.9, 2.6), (-0.3, 1.2, 0), 55)
-    return merge(ms), C2.shake(cam, 0.05, tg), ENV_DAY, {}
+    """Poon soulève le bidon à deux mains et frappe le requin sur la tête, plusieurs fois"""
+    ph = (lt % FIGHT_T) / FIGHT_T
+    if ph < 0.55:                              # il lève le bidon au-dessus de sa tête, bras tendus
+        k = ph / 0.55
+        sp, lean = 1.0 + 2.0 * k, -0.08 * k
+    elif ph < FIGHT_HIT:                       # il l'abat d'un coup
+        k = (ph - 0.55) / (FIGHT_HIT - 0.55)
+        sp, lean = 3.0 - 2.4 * k, 0.75 * k
+    else:                                      # impact sur la tête du requin
+        sp, lean = 0.6, 0.75
+    hit = C2.decay(ph * FIGHT_T, FIGHT_HIT * FIGHT_T, 10) if ph >= FIGHT_HIT else 0.0
+    pose = dict(la=(sp, 0.0, 0.15), ra=(sp, 0.0, 0.15), lean=lean, hp=0.3 - 0.4 * (sp > 2.2))
+    body = poon_on((-1.05, 0, 0.0), math.pi / 2, pose)
+    hl = POON.attach['hand_l'][:3, 3]
+    hr = POON.attach['hand_r'][:3, 3]
+    mid = (hl + hr) / 2
+    axis = hr - hl
+    tin = rod(mid - axis / np.linalg.norm(axis) * 0.21, mid + axis / np.linalg.norm(axis) * 0.21, 0.14, (170, 165, 150), n=8)
+    ms = [sea_at(tg), raft_world(tg, [body, tin, shark_on_raft(tg, 1.0, 0.0, hit)], tin=False)]
+    cam = Cam((1.4, 1.55, 2.4), (-0.6, 1.15, 0), 58)
+    if hit > 0.3:
+        ms.append(billboard(tuple(mid + np.array([0.05, -0.12, 0])), 0.5 * hit, 0.5 * hit, cam, (255, 250, 220), 'spark', emis=1.0, alpha=hit))
+    return merge(ms), C2.shake(cam, 0.02 + 0.1 * hit, tg), ENV_DAY, {}
 
 
 def shot_fins(lt, dur, tg):
@@ -422,12 +467,24 @@ def shot_fins(lt, dur, tg):
 BOAT_POS = np.array([7.0, 0, -2.0])
 
 
+def surprised(tg, k):
+    """pêcheur surpris : les deux bras en l'air, qui s'agitent"""
+    w = 2.85 + 0.25 * math.sin(tg * 7 + k * 1.7)
+    return dict(la=(w, 0.55, 0.3), ra=(w - 0.1, 0.55, 0.3), lean=-0.1, hp=-0.15)
+
+
+def happy_wave(tg):
+    """Poon, fou de joie : debout, les deux bras qui s'agitent au-dessus de la tête"""
+    w = 2.8 + 0.4 * math.sin(tg * 9)
+    return dict(la=(w, 0.6, 0.2), ra=(w, 0.6, 0.2), hp=-0.2, drop=0.04 * abs(math.sin(tg * 4.5)))
+
+
 def boat_world(tg, x_off=0.0, people=None, yaw=math.pi):
     pos = BOAT_POS + np.array([x_off, 0, 0])
     ppl = people if people is not None else [
-        FISH[0].mesh((0.9, 0.65, -0.3), -math.pi / 2, dict(ra=(1.7, 0.1, 0.2), hy=0.2)),
-        FISH[1].mesh((-0.6, 0.65, 0.4), -math.pi / 2, dict(la=(2.6, 0.4, 0.4), hy=-0.2)),
-        FISH[2].mesh((-2.2, 0.65, -0.1), -math.pi / 2 + 0.3, sit_pose(drop=0.45))]
+        FISH[0].mesh((0.9, 0.65, -0.3), math.pi / 2, surprised(tg, 0)),
+        FISH[1].mesh((-0.6, 0.65, 0.4), math.pi / 2, surprised(tg, 1)),
+        FISH[2].mesh((-2.0, 0.65, -0.1), math.pi / 2 - 0.2, dict(ra=(1.6, 0.0, 0.1), la=(2.7, 0.5, 0.3), hy=-0.2))]   # il le montre du doigt
     m = merge([fishing_boat(emu=True)] + ppl)
     return m.xf(M(trans(pos), roty(yaw), trans(0, 0.04 * math.sin(tg * 1.5), 0), rotx(0.03 * math.sin(tg * 1.2))))
 
@@ -436,7 +493,7 @@ def shot_fishermen(lt, dur, tg):
     """5 avril 1943 : une barque à voile approche, les pêcheurs le montrent du doigt"""
     xo = 4.0 - lt * 1.2
     cam = cam_lerp(Cam((-2.5, 1.5, 5.0), (6.5, 1.6, -2), 52), Cam((-2.2, 1.45, 4.6), (6.0, 1.6, -2), 50), lt / dur)
-    ms = [sea_at(tg, amp=0.12), raft_world(tg, [poon_on((0, 0, 0), 1.3, poon_sit(tg, hp=0.2, ra=(1.2, 0.5, 0.3)), POON)], knots=12, k=0.6), boat_world(tg, xo)]
+    ms = [sea_at(tg, amp=0.12), raft_world(tg, [poon_on((0, 0, 0), 1.4, happy_wave(tg), POON)], knots=12, k=0.6), boat_world(tg, xo)]
     return merge(ms), cam, ENV_DAY, {}
 
 
@@ -444,7 +501,7 @@ def shot_bow(lt, dur, tg):
     """la barque arrive tout près du radeau : les pêcheurs se penchent (petite sculpture d'émeu sur l'étrave)"""
     xo = -2.2 - lt * 0.5
     cam = cam_lerp(Cam((-1.0, 1.5, 2.8), (2.6, 1.0, -1.8), 55), Cam((-0.8, 1.45, 2.5), (2.6, 1.0, -1.8), 53), lt / dur)
-    ms = [sea_at(tg, amp=0.12), raft_world(tg, [poon_on((0, 0, 0), 1.3, poon_sit(tg, hp=0.3, lean=0.2), POON_C)], knots=12, k=0.5), boat_world(tg, xo)]
+    ms = [sea_at(tg, amp=0.12), raft_world(tg, [poon_on((0, 0, 0), 1.4, happy_wave(tg + 0.5), POON)], knots=12, k=0.5), boat_world(tg, xo)]
     return merge(ms), cam, ENV_DAY, {}
 
 
@@ -671,8 +728,9 @@ def build_audio(path):
     mx.add(A.rain(S['shark'] - S['rain']), S['rain'], 0.4)
     mx.add(A.splash(0.9), S['shark'] + 0.6, 0.7)
     mx.add(A.thwack(0.3), S['shark'] + 1.3, 0.6)
-    for k in range(3):
-        mx.add(A.thwack(0.3), S['fight'] + 0.25 + k * 0.7, 0.6)
+    for th in fight_hits(S['fight'], S['fins']):
+        mx.add(A.thwack(0.3), th, 0.8)
+        mx.add(A.clank(0.2), th, 0.4)
     mx.add(A.gulls(3), S['fins'], 0.3)
     mx.add(A.wind(4), S['fishermen'], 0.25)
     mx.add(A.crowd(2.0), S['fishermen'] + 1.0, 0.15)

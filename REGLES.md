@@ -50,6 +50,20 @@ Ce qui marche le mieux :
 - Casques 14-18 : `hat='brodie'` (américain), `hat='stahl'` (allemand) ; chapeau de paille `hat='straw'` ; `pigeon()`, `shark()`, `raft()`, `cargo_ship()`,
   `uboat()`, `patrol_plane()`, `fishing_boat(emu=True)`, `crookes_tube()`, `xray_screen()`, `hand_image()` dans props7.py.
 
+- **Retours du 10 nov. (à ne plus refaire)** :
+  - un animal hissé sur un radeau passe PAR-DESSUS le bord, ventre posé sur le plancher (jamais à travers les planches) ; une bagarre = un vrai coup
+    (lever l'objet à bras tendus puis l'abattre sur la tête, étincelle + secousse + bruit à l'impact) ;
+  - des sauveteurs sont TOURNÉS vers la personne (attention : dans un groupe tourné de 180°, l'orientation locale s'inverse), bras en l'air, surpris ;
+    le rescapé fait de grands signes de joie ;
+  - relief : pas de pente qui monte à des dizaines de mètres (arbres qui « volent » sur la pente) -> pentes douces jusqu'à un plateau, maillage fin,
+    pied des arbres enfoncé côté bas ; pas de « boules » de feuillage sans tronc. Si on relève le sol, vérifier que les caméras ne sont pas sous terre ;
+  - un objet posé (pigeon sur une table) : calculer la hauteur des pattes (pigeon debout : centre = dessus + 0,145) ;
+  - médaille : la faire vraiment (croix pattée, épées, médaillon, anneau, ruban rayé) et la montrer en gros plan ; montrer le détail annoncé (patte de bois) ;
+  - pas de fenêtre plaquée sur une porte ; un meuble contre un mur est décollé de quelques cm (sinon les textures se mélangent) ;
+  - une alliance se met sur la 1re phalange, pas sur la paume ;
+  - une main posée quelque part doit être accrochée au bras : placer la main là où l'IK amène vraiment le poignet (`Human.attach['hand_l']`) ;
+  - « il passe sa main devant » : on doit VOIR la main bouger devant l'écran, caméra de côté.
+
 Options moteur :
 - lib.SIMPLE_FACES = True  -> visages 2 points (à mettre avant d'importer world).
 - Look PS1 renforcé (en test) : engine.PS1_MODE = True ; engine.W, engine.H, engine.UPS = 180, 320, 6

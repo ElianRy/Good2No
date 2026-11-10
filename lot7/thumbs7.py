@@ -74,10 +74,25 @@ elif NAME == 'viande':
     img = darken_top(img)
     y = title(img, [[('IL', W_), ('A', W_), ('PLU', W_)], [('DE', Y_), ('LA', Y_), ('VIANDE', Y_)], [('CRUE', R_), ('!', R_)]], 120, 120)
     episode(img, 23, y + 30)
+elif NAME == 'poon':
+    img = shot(G['shot_hook'], 0.0, 2.6, 0.4, G['Cam']((2.8, 1.5, 4.4), (0.1, 2.0, 0.0), 55))
+    img = darken_top(img)
+    y = title(img, [[('133', R_), ('JOURS', R_)], [('SEUL', W_), ('SUR', W_), ('UN', W_)], [('RADEAU', Y_), ('!', Y_)]], 120, 120)
+    episode(img, 25, y + 30)
+elif NAME == 'cherami':
+    img = shot(G['shot_hook'], 0.6, 2.6, 0.6)
+    img = darken_top(img)
+    y = title(img, [[('UN', W_), ('PIGEON', Y_)], [('A', W_), ('SAUVÉ', W_)], [('194', R_), ('SOLDATS', R_)]], 120, 120)
+    episode(img, 26, y + 30)
+elif NAME == 'rayonsx':
+    img = shot(G['shot_hook'], 0.0, 2.6, 0.3)
+    img = darken_top(img)
+    y = title(img, [[('ELLE', W_), ('A', W_), ('VU', W_)], [('SON', W_), ('PROPRE', W_)], [('SQUELETTE', Y_)]], 120, 120)
+    episode(img, 27, y + 30)
 else:
     img = shot(G['shot_title'], 0.5, 1.6, 0.5, G['Cam']((0.0, 2.2, 0.75), (0, 0, 0), 40))
     img = darken_top(img)
     y = title(img, [[('SA', W_), ('VAISSELLE', W_), ('SALE', W_)], [('A', W_), ('SAUVÉ', Y_), ('DES', W_)], [('MILLIONS', R_), ('DE', W_), ('VIES', R_)]], 120, 108)
     episode(img, 24, y + 30)
-img.save(f'{OUT}/miniature_ep{dict(chaise=22, viande=23, fleming=24)[NAME]}.png')
+img.save(f'{OUT}/miniature_ep{dict(chaise=22, viande=23, fleming=24, poon=25, cherami=26, rayonsx=27)[NAME]}.png')
 print('ok', NAME)
